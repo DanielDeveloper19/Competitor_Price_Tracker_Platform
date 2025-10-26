@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class PriceHistoryController {
+public class PriceHistoryController { //reviewed
 
     @Autowired
     private PriceHistoryService priceHistoryService;

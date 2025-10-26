@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ScraperService {
@@ -59,13 +60,25 @@ public class ScraperService {
                 JSONArray variants = productJson.getJSONArray("variants");
                 double price = variants.getJSONObject(0).getDouble("price");
 
-                Product product = new Product();
-                product.setName(title);
-                product.setCurrentPrice(BigDecimal.valueOf(price));
-                product.setCompetitor(competitor);
+                // Try to find if the product already exists for this competitor
+                Optional<Product> existingProduct = productRepository.findByNameAndCompetitor(title, competitor);
 
-                // Save or update product in DB
+                Product product;
+
+                if (existingProduct.isPresent()) {
+                    product = existingProduct.get();
+                    product.setCurrentPrice(price); // update price
+
+                } else {
+                    product = new Product();
+                    product.setName(title);
+                    product.setCurrentPrice(price);
+                    product.setCompetitor(competitor);
+                }
+
+// Save (will update if it has an ID, insert otherwise)
                 productRepository.save(product);
+
 
                 // Store price history
                 PriceHistory history = new PriceHistory();

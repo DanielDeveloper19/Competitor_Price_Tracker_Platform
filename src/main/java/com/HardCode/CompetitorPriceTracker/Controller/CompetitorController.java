@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class CompetitorController {
+public class CompetitorController {//reviewed
 
     @Autowired
     private CompetitorService competitorService;

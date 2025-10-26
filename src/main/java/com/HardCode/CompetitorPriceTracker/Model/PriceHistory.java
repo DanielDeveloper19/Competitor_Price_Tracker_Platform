@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PriceHistory {
+public class PriceHistory {//reviewed
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Setter
 @Getter
-public class Product {
+public class Product {//reviewed
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

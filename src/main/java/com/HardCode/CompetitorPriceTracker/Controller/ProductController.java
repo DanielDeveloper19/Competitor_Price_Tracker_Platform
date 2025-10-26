@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class ProductController {
+public class ProductController { //reviewed
 
     @Autowired
     private ProductService productService;
