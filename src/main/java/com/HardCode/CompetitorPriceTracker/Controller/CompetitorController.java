@@ -16,12 +16,12 @@ public class CompetitorController {//reviewed
     @Autowired
     private CompetitorService competitorService;
 
-    @PostMapping
+    @PostMapping("/createCompetitor")
     public ResponseEntity<Competitor> create(@RequestBody Competitor competitor) {
         return new ResponseEntity<>(competitorService.save(competitor), null, 200);
     }
 
-    @GetMapping
+    @GetMapping("getAllCompetitors")
     public ResponseEntity<List<Competitor>> getAll() {
         return new ResponseEntity<>(competitorService.getAllCompetitors(), null, 200);
     }

@@ -19,12 +19,12 @@ public class PriceHistoryController { //reviewed
     @Autowired
     private PriceHistoryService priceHistoryService;
 
-    @PostMapping
+    @PostMapping("/createPriceHistory")
     public ResponseEntity<PriceHistory> create(@RequestBody PriceHistory priceHistory) {
         return new ResponseEntity<>(priceHistoryService.savePriceHistory(priceHistory), null, 200);
     }
 
-    @GetMapping
+    @GetMapping("/getAllPriceHistories")
     public ResponseEntity<List<PriceHistory>> getAll() {
         return new ResponseEntity<>(priceHistoryService.getAllPriceHistory(), null, 200);
     }

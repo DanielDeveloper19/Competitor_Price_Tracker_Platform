@@ -18,12 +18,12 @@ public class ProductController { //reviewed
     @Autowired
     private ProductService productService;
 
-    @PostMapping
+    @PostMapping("/createProduct")
     public ResponseEntity<Product> create(@RequestBody Product product) {
         return new ResponseEntity<>(productService.save(product), null, 200);
     }
 
-    @GetMapping
+    @GetMapping("/getAllProducts")
     public ResponseEntity<List<Product>> getAll() {
         return new ResponseEntity<>(productService.getAllProducts(), null, 200);
     }

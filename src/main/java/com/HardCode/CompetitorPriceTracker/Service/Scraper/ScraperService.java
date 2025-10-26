@@ -12,12 +12,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +32,15 @@ public class ScraperService {
     @Autowired
     private PriceHistoryRepository priceHistoryRepository;
 
+
+    @Async
     public List<Product> scrapeShopifyProducts(Competitor competitor) {
+
+        if (!competitor.getUrl().toLowerCase().contains("myshopify.com")) {
+            System.out.println("⏩ Skipping non-Shopify competitor: " + competitor.getUrl());
+            return Collections.emptyList(); //it is not a shoppify store
+        }
+
         List<Product> products = new ArrayList<>();
 
         try {
