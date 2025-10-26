@@ -2,6 +2,10 @@ package com.HardCode.CompetitorPriceTracker.Model;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -9,6 +13,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class Product {
 
     @Id
@@ -16,7 +24,7 @@ public class Product {
     private UUID id;
 
     private String name;
-    private BigDecimal currentPrice;
+    private Double currentPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")

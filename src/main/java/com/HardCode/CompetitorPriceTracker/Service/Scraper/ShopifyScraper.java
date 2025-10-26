@@ -43,7 +43,7 @@ public class ShopifyScraper {
                 String priceText = productEl.select(".product-card__price, .grid-product__price").text();
 
                 // Clean and parse price (remove $ or currency symbol)
-                BigDecimal price = parsePrice(priceText);
+                Double price = parsePrice(priceText);
 
                 // Create and save product
                 Product product = new Product();
@@ -67,6 +67,34 @@ public class ShopifyScraper {
         }
 
         return scrapedProducts;
+    }
+
+    private Double parsePrice(String priceText) {
+        if (priceText == null || priceText.isBlank()) {
+            return 0.0;
+        }
+
+        try {
+            // Remove everything except numbers, commas, and dots
+            String cleaned = priceText.replaceAll("[^\\d.,]", "");
+
+            // Handle formats like "1,299.99" or "1.299,99"
+            if (cleaned.contains(",") && cleaned.contains(".")) {
+                if (cleaned.lastIndexOf(",") > cleaned.lastIndexOf(".")) {
+                    cleaned = cleaned.replace(".", "").replace(",", ".");
+                } else {
+                    cleaned = cleaned.replace(",", "");
+                }
+            } else if (cleaned.contains(",")) {
+                // If there's only a comma, assume it's a decimal separator
+                cleaned = cleaned.replace(",", ".");
+            }
+
+            return Double.parseDouble(cleaned);
+        } catch (NumberFormatException e) {
+            System.err.println("⚠️ Could not parse price: " + priceText);
+            return 0.0;
+        }
     }
 
 
