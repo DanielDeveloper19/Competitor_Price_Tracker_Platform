@@ -9,19 +9,17 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ScraperService {
@@ -34,16 +32,18 @@ public class ScraperService {
 
 
     @Async
-    public List<Product> scrapeShopifyProducts(Competitor competitor) {
+    public void scrapeShopifyProducts(Competitor competitor) {
 
-        if (!competitor.getUrl().toLowerCase().contains("myshopify.com")) {
-            System.out.println("⏩ Skipping non-Shopify competitor: " + competitor.getUrl());
-            return Collections.emptyList(); //it is not a shoppify store
+        if (!"shopify".equalsIgnoreCase(competitor.getPlatform())) {
+            System.out.println("⏩ Skipping non-Shopify competitor: " + competitor.getName());
+            return;
         }
 
         List<Product> products = new ArrayList<>();
 
         try {
+            System.out.println("✅ Starting to scrape competitor: " + competitor.getName());
+
             // 1️⃣ Build Shopify endpoint
             String url = competitor.getUrl();
             if (!url.endsWith("/products.json")) {
@@ -104,7 +104,7 @@ public class ScraperService {
             System.out.println("Error scraping " + competitor.getUrl() + ": " + e.getMessage());
         }
 
-        return products;
+
     }
 
 

@@ -21,15 +21,15 @@ public class ScraperController {
     private ICompetitorRepository competitorRepository;
 
     @PostMapping("/run")
-    public List<Product> scrapeAllCompetitors() {
+    public void scrapeAllCompetitors() {
         List<Competitor> competitors = competitorRepository.findAll();
         List<Product> allProducts = new ArrayList<>();
 
         for (Competitor c : competitors) {
-            allProducts.addAll(scraperService.scrapeShopifyProducts(c));
+            scraperService.scrapeShopifyProducts(c);
         }
 
-        return allProducts;
+
     }
 
 }
