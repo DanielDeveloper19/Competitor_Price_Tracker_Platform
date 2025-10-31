@@ -68,43 +68,60 @@ public class ScraperService {
                 String title = productJson.getString("title");
 
                 JSONArray variants = productJson.getJSONArray("variants");
-                double price = variants.getJSONObject(0).getDouble("price");
+                double newPrice = variants.getJSONObject(0).getDouble("price");
 
                 // Try to find if the product already exists for this competitor
-                Optional<Product> existingProduct = productRepository.findByNameAndCompetitor(title, competitor);
+                Optional<Product> existingProductOpt = productRepository.findByNameAndCompetitor(title, competitor);
 
                 Product product;
 
-                if (existingProduct.isPresent()) {
-                    product = existingProduct.get();
-                    product.setCurrentPrice(price); // update price
+                if (existingProductOpt.isPresent()) {
+                    product = existingProductOpt.get();
+                    double oldPrice = product.getCurrentPrice();
+
+                    // 🧠 Check if price has changed
+                    if (Double.compare(oldPrice, newPrice) != 0) {
+                        System.out.printf("💰 Price change detected for %s: %.2f → %.2f%n", title, oldPrice, newPrice);
+
+                        product.setCurrentPrice(newPrice);
+                        productRepository.save(product);
+
+                        // Store price history (only when changed)
+                        PriceHistory history = new PriceHistory();
+                        history.setProduct(product);
+                        history.setPrice(newPrice);
+                        history.setDate(LocalDateTime.now());
+                        priceHistoryRepository.save(history);
+                    } else {
+                        System.out.println("No price change for: " + title);
+                    }
 
                 } else {
+                    // 🆕 New product → save and log
                     product = new Product();
                     product.setName(title);
-                    product.setCurrentPrice(price);
+                    product.setCurrentPrice(newPrice);
                     product.setCompetitor(competitor);
+
+                    productRepository.save(product);
+
+                    PriceHistory history = new PriceHistory();
+                    history.setProduct(product);
+                    history.setPrice(newPrice);
+                    history.setDate(LocalDateTime.now());
+                    priceHistoryRepository.save(history);
+
+                    System.out.println("🆕 New product added: " + title);
                 }
 
-// Save (will update if it has an ID, insert otherwise)
-                productRepository.save(product);
-
-
-                // Store price history
-                PriceHistory history = new PriceHistory();
-                history.setProduct(product);
-                history.setPrice(price);
-                history.setDate(LocalDateTime.now());
-                priceHistoryRepository.save(history);
-
-                products.add(product);
+                products.add(product); //You could return this list if you want to take a look or use the values that were scraped
             }
 
+            System.out.println("✅ Finished scraping competitor: " + competitor.getName());
+
         } catch (Exception e) {
-            System.out.println("Error scraping " + competitor.getUrl() + ": " + e.getMessage());
+            System.out.println("❌ Error scraping " + competitor.getUrl() + ": " + e.getMessage());
         }
-
-
     }
 
 

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CompetitorService {
@@ -25,6 +26,14 @@ public class CompetitorService {
     }
 
     public Competitor save(Competitor competitor) {
+
+        Optional<Competitor> existing = competitorRepository.findByUrl(competitor.getUrl());
+
+        if (existing.isPresent()) {
+            System.out.println("⚠️ Competitor already exists: " + competitor.getUrl());
+            return existing.get();
+        }
+
         Competitor savedCompetitor = competitorRepository.save(competitor);
 
         // Run scraper asynchronously (so API response isn't blocked)

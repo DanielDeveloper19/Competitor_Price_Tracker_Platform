@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -27,6 +28,11 @@ public class PriceHistoryController { //reviewed
     @GetMapping("/getAllPriceHistories")
     public ResponseEntity<List<PriceHistory>> getAll() {
         return new ResponseEntity<>(priceHistoryService.getAllPriceHistory(), null, 200);
+    }
+
+    @GetMapping("/price-history/{productId}")
+    public ResponseEntity<List<PriceHistory>> getPriceHistoryById(@PathVariable("productId") UUID productId) {
+        return new ResponseEntity<>(priceHistoryService.getPriceHistoryById(productId), null, 200);
     }
 
 }

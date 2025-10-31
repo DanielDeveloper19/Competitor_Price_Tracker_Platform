@@ -21,7 +21,7 @@ public class CompetitorController {//reviewed
         return new ResponseEntity<>(competitorService.save(competitor), null, 200);
     }
 
-    @GetMapping("getAllCompetitors")
+    @GetMapping("/competitors")
     public ResponseEntity<List<Competitor>> getAll() {
         return new ResponseEntity<>(competitorService.getAllCompetitors(), null, 200);
     }

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Competitor Price Tracker 🏪</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 100%);
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #58a6ff;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(88, 166, 255, 0.3);
+    }
+    
+    .subtitle {
+      color: #8b949e;
+      font-size: 1.1rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(88, 166, 255, 0.2);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #58a6ff;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: #8b949e;
+      font-size: 0.9rem;
+    }
+    
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 30px;
+      margin: 20px auto;
+      width: 100%;
+      max-width: 1200px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s;
+    }
+    
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    
+    .card h2 {
+      color: #58a6ff;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      border-bottom: 2px solid #30363d;
+      padding-bottom: 10px;
+    }
+    
+    .product-item {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .product-name {
+      color: #e6edf3;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+    
+    .price-badge {
+      background: linear-gradient(135deg, #58a6ff 0%, #4184e4 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .spinner {
+      border: 4px solid #30363d;
+      border-top: 4px solid #58a6ff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+      background: #da3633;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 800px;
+      text-align: center;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #8b949e;
+    }
+    
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+    
+    .retry-btn {
+      background: #58a6ff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    
+    .retry-btn:hover {
+      background: #4184e4;
+    }
+    
+    canvas {
+      margin-top: 15px;
+      max-height: 300px;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .product-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 Competitor Price Tracker</h1>
+    <p class="subtitle">Monitor competitor prices in real-time. Perfect for dropshippers.</p>
+  </div>
+
+  
+  
+  <div id="stats" class="stats-grid"></div>
+  <div id="dashboard"></div>
+  
+  <script>
+    const API_BASE = "http://localhost:8080";
+    const chartInstances = new Map();
+    
+    function showLoading() {
+      const dashboard = document.getElementById("dashboard");
+      dashboard.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading competitor data...</p>
+        </div>
+      `;
+    }
+    
+    function showError(message) {
+      const dashboard = document.getElementById("dashboard");
+      dashboard.innerHTML = `
+        <div class="error">
+          <h3>❌ Error Loading Dashboard</h3>
+          <p>${message}</p>
+          <button class="retry-btn" onclick="loadDashboard()">🔄 Retry</button>
+        </div>
+      `;
+    }
+    
+    function showEmptyState() {
+      const dashboard = document.getElementById("dashboard");
+      dashboard.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <h3>No competitors tracked yet</h3>
+          <p>Add competitors to start monitoring prices</p>
+        </div>
+      `;
+    }
+    
+    function updateStats(competitors) {
+      const statsDiv = document.getElementById("stats");
+      const totalCompetitors = competitors.length;
+      const totalProducts = competitors.reduce((sum, c) => sum + (c.products?.length || 0), 0);
+      const avgPrice = competitors
+        .flatMap(c => c.products || [])
+        .reduce((sum, p, _, arr) => sum + (p.currentPrice || 0) / arr.length, 0)
+        .toFixed(2);
+      
+      statsDiv.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">${totalCompetitors}</div>
+          <div class="stat-label">Competitors</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${totalProducts}</div>
+          <div class="stat-label">Products Tracked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">$${avgPrice}</div>
+          <div class="stat-label">Avg Price</div>
+        </div>
+      `;
+    }
+    
+    async function fetchWithRetry(url, retries = 3) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (err) {
+          if (i === retries - 1) throw err;
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+      }
+    }
+    
+    async function loadDashboard() {
+      showLoading();
+      
+      try {
+        const competitors = await fetchWithRetry(`${API_BASE}/competitors`);
+        
+        if (!competitors || competitors.length === 0) {
+          showEmptyState();
+          return;
+        }
+        
+        updateStats(competitors);
+        
+        const dashboard = document.getElementById("dashboard");
+        dashboard.innerHTML = "";
+        
+        // Parallel loading of all price histories
+        const allPromises = [];
+        
+        for (const competitor of competitors) {
+          const competitorDiv = document.createElement("div");
+          competitorDiv.className = "card";
+          competitorDiv.innerHTML = `<h2>${competitor.name || 'Unknown Competitor'}</h2>`;
+          
+          if (!competitor.products || competitor.products.length === 0) {
+            competitorDiv.innerHTML += `<p class="empty-state">No products tracked</p>`;
+            dashboard.appendChild(competitorDiv);
+            continue;
+          }
+          
+          for (const product of competitor.products) {
+            const chartId = `chart-${product.id}`;
+            const productDiv = document.createElement("div");
+            productDiv.className = "product-item";
+            productDiv.innerHTML = `
+              <div class="product-header">
+                <h3 class="product-name">${product.name || 'Unnamed Product'}</h3>
+                <span class="price-badge">💲 ${product.currentPrice || 'N/A'}</span>
+              </div>
+              <canvas id="${chartId}"></canvas>
+            `;
+            competitorDiv.appendChild(productDiv);
+            
+            // Add to parallel loading queue
+            allPromises.push(
+              fetchWithRetry(`${API_BASE}/price-history/${product.id}`)
+                .then(history => ({ chartId, history, product }))
+                .catch(err => ({ chartId, error: err, product }))
+            );
+          }
+          
+          dashboard.appendChild(competitorDiv);
+        }
+        
+        // Load all charts in parallel
+        const results = await Promise.allSettled(allPromises);
+        
+        results.forEach(result => {
+          if (result.status === 'fulfilled' && result.value.history) {
+            const { chartId, history, product } = result.value;
+            createChart(chartId, history, product);
+          }
+        });
+        
+      } catch (err) {
+        console.error('Dashboard error:', err);
+        showError(err.message || 'Failed to load data. Please check your connection.');
+      }
+    }
+    
+    function createChart(chartId, history, product) {
+      const canvas = document.getElementById(chartId);
+      if (!canvas) return;
+      
+      // Destroy existing chart if exists
+      if (chartInstances.has(chartId)) {
+        chartInstances.get(chartId).destroy();
+      }
+      
+      const labels = history.map(h => new Date(h.date).toLocaleDateString());
+      const prices = history.map(h => h.price);
+      
+      const chart = new Chart(canvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Price History",
+            data: prices,
+            borderColor: "#58a6ff",
+            backgroundColor: "rgba(88, 166, 255, 0.1)",
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: "#58a6ff",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#161b22",
+              titleColor: "#e6edf3",
+              bodyColor: "#e6edf3",
+              borderColor: "#30363d",
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "#8b949e" },
+              grid: { color: "#21262d" }
+            },
+            y: {
+              ticks: {
+                color: "#8b949e",
+                callback: value => `$${value}`
+              },
+              grid: { color: "#21262d" }
+            }
+          }
+        }
+      });
+      
+      chartInstances.set(chartId, chart);
+    }
+    
+    // Auto-refresh every 5 minutes
+    loadDashboard();
+    setInterval(loadDashboard, 5 * 60 * 1000);
+  </script>
+</body>
+</html>

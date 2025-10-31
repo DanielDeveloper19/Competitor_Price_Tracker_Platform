@@ -28,4 +28,18 @@ public class ProductController { //reviewed
         return new ResponseEntity<>(productService.getAllProducts(), null, 200);
     }
 
+    /* Maybe add later
+    GET /api/products
+// Returns list of all tracked products with current price
+
+    GET /api/products/{id}/history
+// Returns price history for specific product (last 30 days)
+
+    POST /api/products
+// Add new product URL to track
+
+    DELETE /api/products/{id}
+// Stop tracking a product
+*/
+
 }

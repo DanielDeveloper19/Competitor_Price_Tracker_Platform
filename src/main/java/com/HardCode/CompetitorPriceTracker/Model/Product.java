@@ -1,6 +1,8 @@
 package com.HardCode.CompetitorPriceTracker.Model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,9 +30,11 @@ public class Product {//reviewed
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")
+    @JsonBackReference
     private Competitor competitor;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<PriceHistory> priceHistoryList;
 
 
